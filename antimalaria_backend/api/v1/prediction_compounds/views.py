@@ -22,9 +22,10 @@ class PredictionCompoundViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        if self.request.user.role == 'admin':
-            return PredictionCompound.objects.all()
-        return PredictionCompound.objects.filter(prediction__user=self.request.user)
+        qs = PredictionCompound.objects.select_related('prediction', 'prediction__user', 'compound')
+        if self.request.user.role != 'admin':
+            qs = qs.filter(prediction__user=self.request.user)
+        return qs
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
